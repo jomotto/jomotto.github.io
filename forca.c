@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
 
 #define MAX 2
 #define MAXLINE 32
@@ -106,6 +107,8 @@ int child(int fd0, int fd1)
 		printf("CHILD %s\n", linec);
 		write(fd1, linec, 1);
                 }
+
+return 0;
 }
 
 
@@ -120,6 +123,7 @@ int parent(int fd0, int fd1)
 	n = read(fd0, linep, 1);
 
 	printf("PT %s\n", linep);
+return 0;
 }
 
 int main()

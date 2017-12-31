@@ -1,0 +1,2 @@
+gcc forca.c -std=gnu99 -o forca
+#clang a1.c
