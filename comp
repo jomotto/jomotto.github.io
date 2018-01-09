@@ -1,2 +1,5 @@
+#gcc forca.c -std=gnu99 -o forca
 gcc forca.c -std=gnu99 -o forca
+echo compilacion $?  
+
 #clang a1.c

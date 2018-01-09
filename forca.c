@@ -15,6 +15,30 @@
 int mytablet[MAXROW][MAXCOL];
 int yourtablet[MAXROW][MAXCOL];
 
+int clearTable( char whichTable, char who )
+{
+  int    i, j;
+
+
+    for (j=0; j <= MAXROW; j++)
+    {
+        for (i=0; i <= MAXCOL; i++)
+        {
+            if ( whichTable == MYTABLE )
+            {
+                mytablet[i][j] = -1;
+            }
+            else
+            {
+                yourtablet[i][j] = -1;
+            }
+        }
+    }
+
+  return 0;
+}
+
+
 int completeTable( char whichTable, char who )
 {
   int    i, j;
@@ -86,88 +110,86 @@ int viewTable( char whichTable, char who )
 
 int child(int fd0, int fd1)
 {
-
-	int		n, fd[2];
-	pid_t	pid;
-	char	linep[MAXLINE];
-	char	linec[MAXLINE];
+  int		n, fd[2];
+  pid_t	pid;
+  char	linep[MAXLINE];
+  char	linec[MAXLINE];
   int index;
   int aleatorio;
 
-		srand(time(NULL));
+  srand(time(NULL));
 
-		aleatorio = rand();
-		index = aleatorio%MAX;
+  aleatorio = rand();
+  index = aleatorio%MAX;
 
-		n = read(fd0, linec, 1);
-                if (*linec == 'I')
-               {
-                sprintf(linec, "%d", index);
+  n = read(fd0, linec, 1);
+  if (*linec == 'I')
+  {
+      sprintf(linec, "%d", index);
 
-		printf("CHILD %s\n", linec);
-		write(fd1, linec, 1);
-                }
-
-return 0;
+      printf("CHILD %s\n", linec);
+      write(fd1, linec, 1);
+  }
+  return 0;
 }
 
 
 int parent(int fd0, int fd1)
 {
-	int		n;
-	char	linep[MAXLINE];
+  int		n;
+  char	linep[MAXLINE];
 
-	write(fd1, "I", 1);
-	system("sleep 1");
+  write(fd1, "I", 1);
+  system("sleep 1");
 
-	n = read(fd0, linep, 1);
+  n = read(fd0, linep, 1);
 
-	printf("PT %s\n", linep);
-return 0;
+  printf("PT %s\n", linep);
+  return 0;
 }
 
 int main()
 {
-	int		n, fd[2];
-	pid_t	pid;
-	char	linep[MAXLINE];
-	char	linec[MAXLINE];
+  int		n, fd[2];
+  pid_t	pid;
+  char	linep[MAXLINE];
+  char	linec[MAXLINE];
   int index;
   int aleatorio;
-pid_t   pid2;
-     int     status;
+  pid_t   pid2;
+  int     status;
 
 
+  if (pipe(fd) < 0)
+     puts("pipe error");
+
+  if ( (pid = fork()) < 0)
+     puts("fork error");
+  else if (pid > 0) {		/* parent */
+
+      clearTable( MYTABLE, 'P'); 
+      clearTable( YOURTABLE, 'P'); 
 
 
-	if (pipe(fd) < 0)
-		puts("pipe error");
+      completeTable( MYTABLE, 'P');
+      completeTable( YOURTABLE, 'P' );
+      viewTable( MYTABLE, 'P' );
+      viewTable( YOURTABLE, 'P' );
 
-	if ( (pid = fork()) < 0)
-		puts("fork error");
+      parent( fd[0], fd[1]);
+      printf("Espero mi pollo\n");
+      if(pid != waitpid(pid, NULL, 0))
+         printf("waitpid error %d\n", pid);
+      printf("sali del hijo\n");
 
-	else if (pid > 0) {		/* parent */
+  } else {				/* child */
 
+      completeTable( MYTABLE, 'C' );
+      completeTable( YOURTABLE, 'C' );
+      viewTable( MYTABLE, 'C' );
+      viewTable( YOURTABLE, 'C' );
 
-  completeTable( MYTABLE, 'P');
-  completeTable( YOURTABLE, 'P' );
-  viewTable( MYTABLE, 'P' );
-  viewTable( YOURTABLE, 'P' );
-
-                parent( fd[0], fd[1]);
-  printf("Espero mi pollo\n");
-   if(pid != waitpid(pid, NULL, 0))
-     printf("waitpid error %d\n", pid);
-   printf("sali del hijo\n");
-
-	} else {				/* child */
-
-  completeTable( MYTABLE, 'C' );
-  completeTable( YOURTABLE, 'C' );
-  viewTable( MYTABLE, 'C' );
-  viewTable( YOURTABLE, 'C' );
-
-		child(fd[0], fd[1]);
-                exit(0);
-	}
+      child(fd[0], fd[1]);
+      exit(0);
+  }
 }
